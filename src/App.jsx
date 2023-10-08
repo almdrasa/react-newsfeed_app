@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { debounce } from "lodash";
 import Container from "@mui/material/Container";
 import NewsHeader from "./components/NewsHeader";
 import NewsFeed from "./components/NewsFeed";
@@ -34,17 +35,24 @@ function App() {
     });
   }
 
+  const fetchArticles = useCallback(
+    debounce(() => {
+      setLoading(true);
+      loadData(query)
+        .then((articles) => {
+          setLoading(false);
+          setArticles(articles);
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoading(false);
+        });
+    }, 500),
+    []
+  );
+
   useEffect(() => {
-    setLoading(true);
-    loadData(query)
-      .then((articles) => {
-        setLoading(false);
-        setArticles(articles);
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
-      });
+    fetchArticles();
   }, [query]);
 
   const handleSearchChange = (query) => {
