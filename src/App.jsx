@@ -4,15 +4,18 @@ import Container from "@mui/material/Container";
 import NewsHeader from "./components/NewsHeader";
 import NewsFeed from "./components/NewsFeed";
 
+const DEFAULT_PAGE_SIZE = 20;
+
 function App() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const abortController = useRef(new AbortController());
 
-  async function loadData(query) {
-    const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&apiKey=${
+  async function loadData(query, page) {
+    const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&page=${page}&apiKey=${
       import.meta.env.VITE_NEWS_API_KEY
     }`;
     const response = await fetch(
@@ -41,12 +44,12 @@ function App() {
   }
 
   const fetchArticles = useCallback(
-    debounce(() => {
+    debounce((query, page) => {
       setLoading(true);
       abortController.current.abort();
       abortController.current = new AbortController();
 
-      loadData(query)
+      loadData(query, page)
         .then((articles) => {
           setLoading(false);
           setArticles(articles);
@@ -60,22 +63,47 @@ function App() {
   );
 
   useEffect(() => {
-    fetchArticles();
+    fetchArticles(query, page);
 
     return () => {
       // Cleanup: Abort any pending requests
       abortController.current.abort();
     };
-  }, [query]);
+  }, [query, page]);
 
-  const handleSearchChange = (query) => {
-    setQuery(query);
+  const handleSearchChange = (newQuery) => {
+    setQuery(newQuery);
   };
+
+  function handleNextPage() {
+    setPage((prevPage) => prevPage + 1);
+  }
+
+  function handlePrevPage() {
+    setPage((prevPage) => Math.max(prevPage - 1, 1));
+  }
 
   return (
     <Container>
       <NewsHeader onSearchChange={handleSearchChange} />
       <NewsFeed articles={articles} loading={loading} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          margin: "20px 0",
+        }}
+      >
+        <button onClick={handlePrevPage} disabled={loading || page === 1}>
+          Previous
+        </button>
+        <button
+          onClick={handleNextPage}
+          disabled={loading || articles.length < DEFAULT_PAGE_SIZE}
+        >
+          Next
+        </button>
+      </div>
     </Container>
   );
 }
