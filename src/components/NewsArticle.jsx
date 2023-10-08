@@ -20,7 +20,9 @@ function NewsArticle(props) {
   return (
     <StyledCard>
       <CardActionArea>
-        <CardMedia component="img" height="200" image={image} alt={title} />
+        {image && (
+          <CardMedia component="img" height="200" image={image} alt={title} />
+        )}
         <CardContent>
           <Typography gutterBottom variant="h6" component="div">
             {title}
