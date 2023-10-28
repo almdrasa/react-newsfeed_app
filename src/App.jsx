@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { debounce } from "lodash";
 import Container from "@mui/material/Container";
+import Button from "@mui/material/Button";
 import NewsHeader from "./components/NewsHeader";
 import NewsFeed from "./components/NewsFeed";
 
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 5;
 
 function App() {
   const [articles, setArticles] = useState([]);
@@ -15,7 +16,7 @@ function App() {
   const abortController = useRef(new AbortController());
 
   async function loadData(query, page) {
-    const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&page=${page}&apiKey=${
+    const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&pageSize=${DEFAULT_PAGE_SIZE}&page=${page}&apiKey=${
       import.meta.env.VITE_NEWS_API_KEY
     }`;
     const response = await fetch(
@@ -73,6 +74,8 @@ function App() {
 
   const handleSearchChange = (newQuery) => {
     setQuery(newQuery);
+    // Reset page number when query changes
+    setPage(1);
   };
 
   function handleNextPage() {
@@ -94,15 +97,20 @@ function App() {
           margin: "20px 0",
         }}
       >
-        <button onClick={handlePrevPage} disabled={loading || page === 1}>
+        <Button
+          variant="outlined"
+          onClick={handlePrevPage}
+          disabled={loading || page === 1}
+        >
           Previous
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outlined"
           onClick={handleNextPage}
           disabled={loading || articles.length < DEFAULT_PAGE_SIZE}
         >
           Next
-        </button>
+        </Button>
       </div>
     </Container>
   );
