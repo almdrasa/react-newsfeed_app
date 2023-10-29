@@ -38,6 +38,7 @@ function App() {
         title,
         description,
         urlToImage: image,
+        url,
         author,
         publishedAt,
       } = article;
@@ -45,6 +46,7 @@ function App() {
         title,
         description,
         image,
+        url,
         author,
         publishedAt,
       };
