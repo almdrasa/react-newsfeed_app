@@ -10,7 +10,7 @@ const DEFAULT_PAGE_SIZE = 5;
 
 function App() {
   const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [error, setError] = useState(null);
@@ -101,7 +101,13 @@ function App() {
           {error}
         </Typography>
       )}
-      {!error && <NewsFeed articles={articles} loading={loading} />}
+      {!error && (
+        <NewsFeed
+          articles={articles}
+          loading={loading}
+          pageSize={DEFAULT_PAGE_SIZE}
+        />
+      )}
       <div
         style={{
           display: "flex",
