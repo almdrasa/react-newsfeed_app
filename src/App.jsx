@@ -4,6 +4,7 @@ import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import NewsHeader from "./components/NewsHeader";
 import NewsFeed from "./components/NewsFeed";
+import Typography from "@mui/material/Typography";
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -12,6 +13,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [error, setError] = useState(null);
 
   const abortController = useRef(new AbortController());
 
@@ -19,6 +21,7 @@ function App() {
     const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&pageSize=${DEFAULT_PAGE_SIZE}&page=${page}&apiKey=${
       import.meta.env.VITE_NEWS_API_KEY
     }`;
+
     const response = await fetch(
       query ? `${baseEndpoint}&q=${query}` : baseEndpoint,
       {
@@ -26,7 +29,10 @@ function App() {
       }
     );
     const data = await response.json();
-    return data.articles.map((article) => {
+    if (data.status !== "ok") {
+      throw new Error(`Error: ${data.code}, Details: ${data.message}`);
+    }
+    return data.articles?.map((article) => {
       const {
         title,
         description,
@@ -47,6 +53,7 @@ function App() {
   const fetchArticles = useCallback(
     debounce((query, page) => {
       setLoading(true);
+      setError(undefined);
       abortController.current.abort();
       abortController.current = new AbortController();
 
@@ -56,8 +63,8 @@ function App() {
           setArticles(articles);
         })
         .catch((error) => {
-          console.log(error);
           setLoading(false);
+          setError(error.message);
         });
     }, 500),
     []
@@ -89,7 +96,12 @@ function App() {
   return (
     <Container>
       <NewsHeader onSearchChange={handleSearchChange} />
-      <NewsFeed articles={articles} loading={loading} />
+      {error && (
+        <Typography color="error" align="center">
+          {error}
+        </Typography>
+      )}
+      {!error && <NewsFeed articles={articles} loading={loading} />}
       <div
         style={{
           display: "flex",
