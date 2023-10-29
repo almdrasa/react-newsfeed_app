@@ -14,11 +14,12 @@ function App() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [error, setError] = useState(null);
+  const [category, setCategory] = useState("general");
 
   const abortController = useRef(new AbortController());
 
-  async function loadData(query, page) {
-    const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&pageSize=${DEFAULT_PAGE_SIZE}&page=${page}&apiKey=${
+  async function loadData(query, category, page) {
+    const baseEndpoint = `https://newsapi.org/v2/top-headlines?country=eg&pageSize=${DEFAULT_PAGE_SIZE}&category=${category}&page=${page}&apiKey=${
       import.meta.env.VITE_NEWS_API_KEY
     }`;
 
@@ -51,13 +52,13 @@ function App() {
   }
 
   const fetchArticles = useCallback(
-    debounce((query, page) => {
+    debounce((query, category, page) => {
       setLoading(true);
       setError(undefined);
       abortController.current.abort();
       abortController.current = new AbortController();
 
-      loadData(query, page)
+      loadData(query, category, page)
         .then((articles) => {
           setLoading(false);
           setArticles(articles);
@@ -71,17 +72,22 @@ function App() {
   );
 
   useEffect(() => {
-    fetchArticles(query, page);
+    fetchArticles(query, category, page);
 
     return () => {
       // Cleanup: Abort any pending requests
       abortController.current.abort();
     };
-  }, [query, page]);
+  }, [query, category, page]);
 
   const handleSearchChange = (newQuery) => {
     setQuery(newQuery);
     // Reset page number when query changes
+    setPage(1);
+  };
+
+  const handleCategoryChange = (event) => {
+    setCategory(event.target.value);
     setPage(1);
   };
 
@@ -95,7 +101,11 @@ function App() {
 
   return (
     <Container>
-      <NewsHeader onSearchChange={handleSearchChange} />
+      <NewsHeader
+        category={category}
+        onCategoryChange={handleCategoryChange}
+        onSearchChange={handleSearchChange}
+      />
       {error && (
         <Typography color="error" align="center">
           {error}
